@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -118,7 +118,7 @@ function CheckoutForm() {
   )
 }
 
-export default function PaymentPage() {
+function PaymentContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -148,5 +148,13 @@ export default function PaymentPage() {
       </main>
       <Footer />
     </div>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentContent />
+    </Suspense>
   )
 }

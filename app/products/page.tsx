@@ -1,10 +1,22 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductGrid from '@/components/ProductGrid'
-import { getAllProducts } from '@/lib/products'
+import { useInventory } from '@/lib/store/inventory'
 
 export default function ProductsPage() {
-  const products = getAllProducts()
+  const { products } = useInventory()
+  const [selectedCategory, setSelectedCategory] = useState('All')
+
+  // Get unique categories from products
+  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)))
+
+  // Filter products based on selected category
+  const filteredProducts = selectedCategory === 'All'
+    ? products
+    : products.filter(p => p.category === selectedCategory)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -23,24 +35,25 @@ export default function ProductsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <p className="text-gray-600 mb-4 sm:mb-0">
-                Showing {products.length} products
+                Showing {filteredProducts.length} products
               </p>
               <div className="flex gap-2">
-                <button className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
-                  All
-                </button>
-                <button className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                  Limited Edition
-                </button>
-                <button className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                  Blind Box
-                </button>
-                <button className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                  Plush
-                </button>
+                {['All', ...categories].map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 rounded-md transition-colors ${
+                      selectedCategory === category
+                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
             </div>
-            <ProductGrid products={products} />
+            <ProductGrid products={filteredProducts} />
           </div>
         </div>
       </main>

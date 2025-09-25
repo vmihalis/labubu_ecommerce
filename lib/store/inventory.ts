@@ -6,7 +6,11 @@ import { Product } from '../types'
 interface InventoryState {
   products: Product[]
   updateStock: (productId: string, stock: number) => void
+  updateProduct: (productId: string, updates: Partial<Product>) => void
+  addProduct: (product: Omit<Product, 'id'>) => void
+  deleteProduct: (productId: string) => void
   getProducts: () => Product[]
+  getProductById: (productId: string) => Product | undefined
 }
 
 // Initialize with data from products.json
@@ -30,7 +34,43 @@ export const useInventory = create<InventoryState>()(
         }))
       },
 
+      updateProduct: (productId: string, updates: Partial<Product>) => {
+        set((state) => ({
+          products: state.products.map(product =>
+            product.id === productId
+              ? {
+                  ...product,
+                  ...updates,
+                  inStock: updates.stock !== undefined ? updates.stock > 0 : product.inStock
+                }
+              : product
+          )
+        }))
+      },
+
+      addProduct: (product: Omit<Product, 'id'>) => {
+        const newId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        const newProduct: Product = {
+          ...product,
+          id: newId,
+          inStock: product.stock ? product.stock > 0 : false
+        }
+        set((state) => ({
+          products: [...state.products, newProduct]
+        }))
+      },
+
+      deleteProduct: (productId: string) => {
+        set((state) => ({
+          products: state.products.filter(product => product.id !== productId)
+        }))
+      },
+
       getProducts: () => get().products,
+
+      getProductById: (productId: string) => {
+        return get().products.find(p => p.id === productId)
+      }
     }),
     {
       name: 'inventory-storage',

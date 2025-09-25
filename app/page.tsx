@@ -1,11 +1,14 @@
+'use client'
+
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import Hero from '@/components/Hero'
 import ProductGrid from '@/components/ProductGrid'
-import { getFeaturedProducts } from '@/lib/products'
+import { useInventory } from '@/lib/store/inventory'
 
 export default function HomePage() {
-  const featuredProducts = getFeaturedProducts()
+  const { products } = useInventory()
+  const featuredProducts = products.filter(p => p.featured)
 
   return (
     <div className="min-h-screen flex flex-col">
