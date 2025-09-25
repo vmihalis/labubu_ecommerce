@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { CartItem, ShippingDetails } from '@/lib/types'
+import { orders } from '@/lib/orders'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2024-11-20',
 })
-
-// In-memory order storage for MVP (in production, use a database)
-const orders = new Map()
 
 export async function POST(request: NextRequest) {
   try {
-    const { items, shipping, amount } = await request.json()
+    const { items, shipping, amount, discountCode } = await request.json()
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -23,13 +21,29 @@ export async function POST(request: NextRequest) {
     // Create order ID
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
+    // Calculate subtotal from items
+    const subtotal = items.reduce((acc: number, item: CartItem) => acc + item.price * item.quantity, 0)
+
+    // Calculate discount
+    let discount = 0
+    if (discountCode) {
+      const discountPercent = discountCode === 'LABU20' ? 20 : discountCode === 'LABU10' ? 10 : discountCode === 'WELCOME5' ? 5 : 0
+      discount = (subtotal * discountPercent) / 100
+    }
+
+    // Calculate tax after discount
+    const taxableAmount = subtotal - discount
+    const tax = taxableAmount * 0.08
+
     // Store order details
     const order = {
       id: orderId,
       items: items as CartItem[],
       shipping: shipping as ShippingDetails,
-      subtotal: amount / 100,
-      tax: (amount / 100) * 0.08,
+      subtotal,
+      discount,
+      discountCode,
+      tax,
       total: amount / 100,
       status: 'pending' as const,
       createdAt: new Date(),
@@ -69,12 +83,21 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Payment intent error:', error)
+
+    // More specific error handling for Stripe errors
+    if (error instanceof Error) {
+      // Check if it's a Stripe-specific error
+      if ('type' in error) {
+        return NextResponse.json(
+          { error: error.message || 'Payment processing failed' },
+          { status: 400 }
+        )
+      }
+    }
+
     return NextResponse.json(
       { error: 'Failed to create payment intent' },
       { status: 500 }
     )
   }
 }
-
-// Export orders for other routes
-export { orders }

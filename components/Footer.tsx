@@ -1,6 +1,50 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 
 export default function Footer() {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!email) return
+
+    setStatus('loading')
+    setMessage('')
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setStatus('success')
+        setMessage(data.message || 'Successfully subscribed!')
+        setEmail('')
+      } else {
+        setStatus('error')
+        setMessage(data.error || 'Failed to subscribe')
+      }
+    } catch (error) {
+      setStatus('error')
+      setMessage('Something went wrong. Please try again.')
+    }
+
+    // Reset after 3 seconds
+    setTimeout(() => {
+      setStatus('idle')
+      setMessage('')
+    }, 3000)
+  }
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -59,19 +103,28 @@ export default function Footer() {
             <p className="text-gray-300 mb-4">
               Subscribe to get exclusive offers and new product updates!
             </p>
-            <form className="flex">
+            <form onSubmit={handleNewsletterSubmit} className="flex">
               <input
                 type="email"
                 placeholder="Your email"
-                className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={status === 'loading'}
+                className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-r-md transition-colors"
+                disabled={status === 'loading'}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-r-md transition-colors disabled:opacity-50"
               >
-                Subscribe
+                {status === 'loading' ? '...' : 'Subscribe'}
               </button>
             </form>
+            {message && (
+              <p className={`mt-2 text-sm ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {message}
+              </p>
+            )}
           </div>
         </div>
 

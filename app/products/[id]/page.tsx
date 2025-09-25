@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, use } from 'react'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -9,8 +9,9 @@ import Footer from '@/components/Footer'
 import { getProductById } from '@/lib/products'
 import { useCart } from '@/lib/store/cart'
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = getProductById(params.id)
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
+  const product = getProductById(resolvedParams.id)
   const addItem = useCart(state => state.addItem)
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)

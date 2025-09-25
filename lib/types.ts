@@ -7,6 +7,7 @@ export interface Product {
   category: string
   inStock: boolean
   featured: boolean
+  stock?: number // Stock quantity
 }
 
 export interface CartItem extends Product {
@@ -29,6 +30,8 @@ export interface Order {
   items: CartItem[]
   shipping: ShippingDetails
   subtotal: number
+  discount?: number
+  discountCode?: string
   tax: number
   total: number
   status: 'pending' | 'processing' | 'completed' | 'failed'

@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import DiscountCode from '@/components/DiscountCode'
 import { useCart } from '@/lib/store/cart'
 import { shippingSchema } from '@/lib/validations'
 import { ShippingDetails } from '@/lib/types'
@@ -17,7 +18,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, getSubtotal, getTax, getTotal } = useCart()
+  const { items, getSubtotal, getDiscount, getTax, getTotal, discountCode } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
   })
 
   const subtotal = getSubtotal()
+  const discount = getDiscount()
   const tax = getTax()
   const total = getTotal()
 
@@ -56,6 +58,7 @@ export default function CheckoutPage() {
           items,
           shipping: data,
           amount: Math.round(total * 100), // Convert to cents
+          discountCode: discountCode,
         }),
       })
 
@@ -291,6 +294,12 @@ export default function CheckoutPage() {
                     <span>Subtotal:</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount ({discountCode}):</span>
+                      <span>-${discount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span>Tax:</span>
                     <span>${tax.toFixed(2)}</span>
@@ -300,6 +309,8 @@ export default function CheckoutPage() {
                     <span className="text-green-600">FREE</span>
                   </div>
                 </div>
+
+                <DiscountCode />
 
                 <div className="border-t mt-4 pt-4">
                   <div className="flex justify-between text-lg font-semibold">

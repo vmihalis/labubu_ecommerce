@@ -6,10 +6,10 @@
       "price": 89.99,
       "description": "LABUBU loves macarons! This special edition features LABUBU in various macaron-inspired colors and designs. Each figure stands approximately 3 inches tall.",
       "image": "/images/placeholder.svg",
-      "image": "/images/placeholder.svg",
       "category": "Limited Edition",
       "inStock": true,
-      "featured": true
+      "featured": true,
+      "stock": 15
     },
     {
       "id": "2",
@@ -17,10 +17,10 @@
       "price": 79.99,
       "description": "The Have a Seat series features LABUBU in various sitting poses. Perfect for display on shelves or desks. Blind box series with 12 designs to collect.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-seat.jpg",
       "category": "Blind Box",
       "inStock": true,
-      "featured": true
+      "featured": true,
+      "stock": 24
     },
     {
       "id": "3",
@@ -28,10 +28,10 @@
       "price": 94.99,
       "description": "Dive into adventure with LABUBU! This aquatic-themed series features diving helmets, snorkels, and underwater accessories.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-diver.jpg",
       "category": "Limited Edition",
       "inStock": true,
-      "featured": false
+      "featured": false,
+      "stock": 8
     },
     {
       "id": "4",
@@ -39,10 +39,10 @@
       "price": 149.99,
       "description": "Soft and huggable LABUBU plush toy in signature pink. Measures 12 inches tall with premium materials and embroidered details.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-plush-pink.jpg",
       "category": "Plush",
       "inStock": true,
-      "featured": true
+      "featured": true,
+      "stock": 5
     },
     {
       "id": "5",
@@ -50,10 +50,10 @@
       "price": 84.99,
       "description": "The mysterious Zimomo series brings LABUBU into a magical world. Features special glow-in-the-dark elements.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-zimomo.jpg",
       "category": "Blind Box",
       "inStock": false,
-      "featured": false
+      "featured": false,
+      "stock": 0
     },
     {
       "id": "6",
@@ -61,10 +61,10 @@
       "price": 59.99,
       "description": "Take LABUBU everywhere! This keychain set includes 5 different mini LABUBU designs, each approximately 2 inches tall.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-keychain.jpg",
       "category": "Accessories",
       "inStock": true,
-      "featured": false
+      "featured": false,
+      "stock": 30
     },
     {
       "id": "7",
@@ -72,10 +72,10 @@
       "price": 99.99,
       "description": "Night bakery themed LABUBU series featuring pastry chef outfits and sweet accessories. Limited collaboration edition.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-patisserie.jpg",
       "category": "Limited Edition",
       "inStock": true,
-      "featured": true
+      "featured": true,
+      "stock": 3
     },
     {
       "id": "8",
@@ -83,10 +83,10 @@
       "price": 24.99,
       "description": "Mini LABUBU mystery box! Contains one random figure from various series. Perfect starter for new collectors.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-mystery.jpg",
       "category": "Blind Box",
       "inStock": true,
-      "featured": false
+      "featured": false,
+      "stock": 50
     },
     {
       "id": "9",
@@ -94,10 +94,10 @@
       "price": 169.99,
       "description": "Special edition rainbow LABUBU plush with color-changing fur effect. Limited to 500 pieces worldwide.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-rainbow.jpg",
       "category": "Plush",
       "inStock": false,
-      "featured": true
+      "featured": true,
+      "stock": 0
     },
     {
       "id": "10",
@@ -105,10 +105,10 @@
       "price": 74.99,
       "description": "Relaxation themed series featuring LABUBU in cozy outfits with pillows, blankets, and sleepy accessories.",
       "image": "/images/placeholder.svg",
-      "image": "/images/labubu-chill.jpg",
       "category": "Blind Box",
       "inStock": true,
-      "featured": false
+      "featured": false,
+      "stock": 18
     }
   ]
 }
