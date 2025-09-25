@@ -3,9 +3,17 @@ import Stripe from 'stripe'
 import { CartItem, ShippingDetails } from '@/lib/types'
 import { orders } from '@/lib/orders'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-08-27.basil',
-})
+// Initialize Stripe only when needed and if key exists
+let stripe: Stripe | null = null
+
+const getStripe = () => {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-08-27.basil',
+    })
+  }
+  return stripe
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,12 +60,13 @@ export async function POST(request: NextRequest) {
     orders.set(orderId, order)
 
     // Check if we have valid Stripe keys
-    const hasValidStripeKey = process.env.STRIPE_SECRET_KEY &&
+    const stripeInstance = getStripe()
+    const hasValidStripeKey = stripeInstance && process.env.STRIPE_SECRET_KEY &&
                               !process.env.STRIPE_SECRET_KEY.includes('test_51234567890')
 
-    if (hasValidStripeKey) {
+    if (hasValidStripeKey && stripeInstance) {
       // Create real Stripe payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await stripeInstance.paymentIntents.create({
         amount, // amount in cents
         currency: 'usd',
         metadata: {
