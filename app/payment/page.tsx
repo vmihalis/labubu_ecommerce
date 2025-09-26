@@ -12,6 +12,7 @@ import {
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useCart } from '@/lib/store/cart'
+import { ShippingDetails } from '@/lib/types'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
 
@@ -24,8 +25,70 @@ function CheckoutForm() {
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
   const [succeeded, setSucceeded] = useState(false)
+  const [shippingDetails, setShippingDetails] = useState<ShippingDetails | null>(null)
 
   const clientSecret = searchParams.get('session')
+
+  const getOrderId = () => sessionStorage.getItem('orderId')
+
+  const updateOrderStatus = async (
+    nextStatus: 'pending' | 'processing' | 'completed' | 'failed',
+    paymentIntentId?: string,
+  ) => {
+    const orderId = getOrderId()
+    if (!orderId) return
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: nextStatus,
+          ...(paymentIntentId ? { paymentIntentId } : {}),
+        }),
+      })
+      if (!response.ok) {
+        console.warn(`Order update request failed with status ${response.status}`)
+      }
+    } catch (updateError) {
+      console.warn(`Unable to update order ${orderId}`, updateError)
+    }
+  }
+
+  const normalizeCountryCode = (country?: string) => {
+    if (!country) return undefined
+    const value = country.trim()
+    if (value.length === 2) {
+      return value.toUpperCase()
+    }
+
+    const match = value.toLowerCase()
+    if (match === 'united states' || match === 'united states of america' || match === 'usa') {
+      return 'US'
+    }
+    if (match === 'canada') {
+      return 'CA'
+    }
+    if (match === 'united kingdom' || match === 'uk') {
+      return 'GB'
+    }
+
+    return undefined
+  }
+
+  useEffect(() => {
+    // Retrieve shipping details saved during checkout for billing info
+    const storedShipping = sessionStorage.getItem('shippingDetails')
+    if (storedShipping) {
+      try {
+        setShippingDetails(JSON.parse(storedShipping) as ShippingDetails)
+      } catch (parseError) {
+        console.warn('Unable to parse stored shipping details', parseError)
+      }
+    }
+  }, [])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -37,20 +100,74 @@ function CheckoutForm() {
     setProcessing(true)
     setError(null)
 
-    // For MVP, simulate payment success (in production, use real Stripe)
-    // This is a simplified version - in production, you'd handle the actual payment
-    setTimeout(() => {
+    if (clientSecret === 'test_mode') {
+      // Simulated success path for environments without real Stripe keys
+      setTimeout(async () => {
+        setSucceeded(true)
+        clearCart()
+        await updateOrderStatus('completed', 'test_mode_payment')
+
+        const orderId = getOrderId()
+        setTimeout(() => {
+          router.push(`/order-confirmation?orderId=${orderId}`)
+        }, 1500)
+      }, 1500)
+      return
+    }
+
+    const cardElement = elements.getElement(CardElement)
+
+    if (!cardElement) {
+      setProcessing(false)
+      setError('Payment form is not ready yet. Please try again in a moment.')
+      return
+    }
+
+    const billingDetails = shippingDetails
+      ? {
+          name: shippingDetails.name,
+          email: shippingDetails.email,
+          address: {
+            line1: shippingDetails.address,
+            city: shippingDetails.city,
+            state: shippingDetails.state,
+            postal_code: shippingDetails.zip,
+            country: normalizeCountryCode(shippingDetails.country),
+          },
+          phone: shippingDetails.phone,
+        }
+      : undefined
+
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: billingDetails,
+      },
+    })
+
+    if (result.error) {
+      setProcessing(false)
+      setError(result.error.message ?? 'Payment was not completed. Please try again.')
+      await updateOrderStatus('failed')
+      return
+    }
+
+    if (result.paymentIntent?.status === 'succeeded') {
       setSucceeded(true)
       clearCart()
 
-      // Get order details from sessionStorage
-      const orderId = sessionStorage.getItem('orderId')
+      await updateOrderStatus('completed', result.paymentIntent.id)
+      const orderId = getOrderId()
 
-      // Redirect to confirmation
       setTimeout(() => {
         router.push(`/order-confirmation?orderId=${orderId}`)
-      }, 2000)
-    }, 2000)
+      }, 1500)
+      return
+    }
+
+    setProcessing(false)
+    setError('Payment processing did not complete. Please try again.')
+    await updateOrderStatus('failed')
   }
 
   return (
