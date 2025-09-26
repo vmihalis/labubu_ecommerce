@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -13,6 +13,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useCart } from '@/lib/store/cart'
 import { ShippingDetails } from '@/lib/types'
+import { Balloons, BalloonsRef } from '@/components/ui/balloons'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
 
@@ -26,6 +27,7 @@ function CheckoutForm() {
   const [processing, setProcessing] = useState(false)
   const [succeeded, setSucceeded] = useState(false)
   const [shippingDetails, setShippingDetails] = useState<ShippingDetails | null>(null)
+  const balloonsRef = useRef<BalloonsRef>(null)
 
   const clientSecret = searchParams.get('session')
 
@@ -107,6 +109,11 @@ function CheckoutForm() {
         clearCart()
         await updateOrderStatus('completed', 'test_mode_payment')
 
+        // Launch balloons animation on success
+        if (balloonsRef.current) {
+          balloonsRef.current.launchAnimation()
+        }
+
         const orderId = getOrderId()
         setTimeout(() => {
           router.push(`/order-confirmation?orderId=${orderId}`)
@@ -157,6 +164,12 @@ function CheckoutForm() {
       clearCart()
 
       await updateOrderStatus('completed', result.paymentIntent.id)
+
+      // Launch balloons animation on success
+      if (balloonsRef.current) {
+        balloonsRef.current.launchAnimation()
+      }
+
       const orderId = getOrderId()
 
       setTimeout(() => {
@@ -231,6 +244,9 @@ function CheckoutForm() {
           {processing ? 'Processing...' : succeeded ? 'Success!' : 'Pay Now'}
         </button>
       </div>
+
+      {/* Balloons animation component */}
+      <Balloons ref={balloonsRef} type="default" className="fixed inset-0 pointer-events-none z-50" />
     </form>
   )
 }
