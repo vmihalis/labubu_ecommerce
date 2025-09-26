@@ -109,6 +109,17 @@
       "inStock": true,
       "featured": false,
       "stock": 18
+    },
+    {
+      "id": "test_stripe",
+      "name": "LABUBU Test Product - Stripe Integration",
+      "price": 25.00,
+      "description": "This is a test product for Stripe payment integration. Use test card 4242 4242 4242 4242 to complete purchase. This product demonstrates the full payment flow from cart to completion.",
+      "image": "/images/placeholder.svg",
+      "category": "Test Products",
+      "inStock": true,
+      "featured": true,
+      "stock": 999
     }
   ]
 }
