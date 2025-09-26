@@ -1,18 +1,48 @@
 'use client'
 
-import { useState } from 'react'
-import { useOrders } from '@/lib/store/orders'
+import { useState, useEffect } from 'react'
+import { Order } from '@/lib/types'
 
 export default function AdminOrdersPage() {
-  const { orders, updateOrderStatus } = useOrders()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'processing' | 'completed' | 'failed'>('all')
+
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch('/api/orders')
+        const data = await response.json()
+        setOrders(data.orders || [])
+      } catch (error) {
+        console.error('Failed to fetch orders:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [])
 
   const filteredOrders = filter === 'all'
     ? orders
     : orders.filter(order => order.status === filter)
 
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    updateOrderStatus(orderId, newStatus as any)
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      // Update the order status in the local state immediately
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId ? { ...order, status: newStatus as any } : order
+        )
+      )
+
+      // Note: In a real app, you'd send this to your API to persist the change
+      // For now, it's just updated locally
+    } catch (error) {
+      console.error('Failed to update order status:', error)
+    }
   }
 
   return (
@@ -34,9 +64,14 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {filteredOrders.length === 0 ? (
+      {loading ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <p className="text-gray-500">Loading orders...</p>
+        </div>
+      ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <p className="text-gray-500">No orders found</p>
+          <p className="text-sm text-gray-400 mt-2">Orders will appear here after customers complete checkout</p>
         </div>
       ) : (
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
