@@ -6,8 +6,8 @@ interface UpdateOrderPayload {
   paymentIntentId?: string
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
-  const { orderId } = params
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = await params
 
   if (!orders.has(orderId)) {
     return NextResponse.json(
